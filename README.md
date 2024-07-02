@@ -7,3 +7,10 @@ This repository contains:
 - Regularization --> V-Sliced Information for regularization of DNNs
 
 ### Generalization and Memorization
+- SMI_Layers_Training.ipynb : Using SMI for analyzing different layers in DNNs
+- SMI_Label_Noise.ipynb : Using SMI for analyzing DNNs in the presence of label noise
+
+### Grokking
+
+
+### Regularization
