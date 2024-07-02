@@ -1,5 +1,5 @@
 # SMI-DNN
-Analysis of Deep Neural Networks (DNNs) using Sliced Mutual Information (SMI)
+Analysis of Deep Neural Networks (DNNs) using Sliced Mutual Information (SMI).
 
 This repository contains:
 - Generalization and Memorization --> Using SMI to analyze the generalization and memorization of DNNs
