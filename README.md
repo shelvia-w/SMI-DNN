@@ -11,6 +11,7 @@ This repository contains:
 - SMI_Label_Noise.ipynb : Using SMI for analyzing DNNs in the presence of label noise
 
 ### Grokking
-
+- Grokking.ipynb : Using SMI for analyzing grokking in small algorithmically generated dataset in DNNs
 
 ### Regularization
+- Regularization.ipynb : Implementation of V-SLiced Information Regularization of DNNs
