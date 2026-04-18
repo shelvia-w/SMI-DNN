@@ -2,7 +2,7 @@
 
 This is the code repository for the paper **"Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks"** published in AISTATS 2023.
 
-Project page source: [`docs/index.html`](docs/index.html). To publish it with GitHub Pages, configure the repository Pages source to serve from the `docs/` folder on the main branch.
+Read the blog here: https://shelvia-w.github.io/SMI-DNN/
 
 The current codebase focuses on reproducible Python experiments for:
 
