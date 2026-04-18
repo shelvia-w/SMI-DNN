@@ -1,6 +1,6 @@
-# Sliced Mutual Information for Deep Neural Network Analysis
+# Sliced Mutual Information for Deep Neural Network (DNN) Analysis
 
-This is the code repository for the paper **"Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks (DNNs)"** published in AISTATS 2023.
+This is the code repository for the paper **"Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks"** published in AISTATS 2023.
 
 The current codebase focuses on reproducible Python experiments for:
 
