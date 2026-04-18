@@ -1,22 +1,20 @@
 # Sliced Mutual Information for Deep Neural Network Analysis
 
-This repository studies deep neural networks through **Sliced Mutual Information (SMI)**, a projection-based mutual-information measure for analyzing learned representations, label information, and training dynamics.
-
-This is the official code repository for the paper **"Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks"**.
+This is the code repository for the paper **"Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks (DNNs)"** published in AISTATS 2023z .
 
 The current codebase focuses on reproducible Python experiments for:
 
-- **Layer-wise representation analysis:** tracking how MI/SMI changes across hidden layers and training epochs.
-- **Generalization diagnostics:** comparing SMI with train/test behavior under dropout, label noise, and batch-normalization sweeps.
+- **Layer-wise representation analysis:** tracking how SMI changes across hidden layers and training epochs.
 - **Memorization under label noise:** measuring how clean and corrupted labels shape learned representations.
+- **Generalization diagnostics:** comparing SMI with generalization gap under dropout, label noise, and batch-normalization sweeps.
 
 ## Research Questions
 
 This project is organized around three practical questions:
 
-1. How does MI/SMI between representations and labels evolve across depth and training time?
-2. Can SMI separate useful label structure from memorized noise?
-3. How do regularization choices such as dropout and batch normalization affect information captured in hidden layers?
+1. How does SMI between representations and labels evolve across depth and epochs?
+2. Is SMI informative for characterizing memorization behavior in DNNs?
+3. Can SMI serve as a predictor of the generalization gap in DNNs?
 
 ## Repository Structure
 
@@ -30,7 +28,7 @@ SMI-DNN/
 |   |-- main.py                 # Unified CLI entry point
 |   |-- run_generalization.py   # Dropout, label-noise, batch-norm, and single-run sweeps
 |   |-- run_label_noise.py      # Clean vs noisy-label benchmark runner
-|   |-- run_layer_analysis.py   # Per-epoch layer-wise MI/SMI analysis
+|   |-- run_layer_analysis.py   # Per-epoch layer-wise SMI analysis
 |   |-- aggregate_results.py    # Summary statistics and optional SMI/gap correlations
 |   |-- plot_results.py         # Plot generation from raw or aggregated CSV outputs
 |   |-- config.py               # CLI defaults, choices, and validation
@@ -43,26 +41,6 @@ SMI-DNN/
 |-- requirements.txt
 `-- README.md
 ```
-
-## Setup
-
-Create an environment and install the required packages:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Run commands from the repository root so Python can import both `estimators` and `experiments`.
-
-To use the notebooks:
-
-```bash
-jupyter notebook notebooks
-```
-
-The experiment scripts use TensorFlow/Keras datasets. Dataset files, and ImageNet weights for `vgg16` or `resnet50`, may be downloaded by TensorFlow the first time those options are used.
 
 ## Method Overview
 
@@ -111,8 +89,6 @@ print(result["smi"], result["stderr"])
 
 ## Experiments
 
-The Python pipeline is the preferred path for reproducible runs. The notebooks are useful for interactive launch, inspection, and lightweight analysis.
-
 You can run each module directly:
 
 ```bash
@@ -149,7 +125,7 @@ python -m experiments.run_layer_analysis \
   --n-jobs -1
 ```
 
-If `--analysis-epochs` is omitted, MI/SMI is computed at every epoch. If `--layers` is omitted, the default hidden layers for the selected model are used.
+If `--analysis-epochs` is omitted, SMI is computed at every epoch. If `--layers` is omitted, the default hidden layers for the selected model are used.
 
 ### Label-Noise Benchmark
 
@@ -170,7 +146,7 @@ python -m experiments.run_label_noise \
   --n-jobs -1
 ```
 
-Noisy-label runs compute MI/SMI against the labels used for training, so the `noisy` condition uses the corrupted training labels.
+Noisy-label runs compute SMI against the labels used for training, so the `noisy` condition uses the corrupted training labels.
 
 ### Generalization Sweeps
 
@@ -234,41 +210,8 @@ Models:
 
 Estimators:
 
-- Direct MI: `ksg_cd`, `ksg_cc`, `neural`
-- Sliced MI: `smi_ksg_cd`, `smi_ksg_cc`, `smi_neural`
-
-Default hidden layers:
-
-- `mlp5`: `fc1`, `fc2`, `fc3`, `fc4`
-- `cnn5`, `cnn5_bn`, `cnn6`: `relu1`, `relu2`, `relu3`, `relu4`
-- `vgg16`, `resnet50`: `fc1`, `fc2`
-
-## Defaults And Outputs
-
-Important CLI defaults:
-
-- Optimizer: SGD with learning rate `0.01` and momentum `0.9`
-- Epochs: `200`
-- Batch size: `32` for MLP/CNN models, `256` for `vgg16` and `resnet50`
-- Seeds: `0,1,2`
-- SMI projections: `1000`
-- MI sample cap: `10000`
-- KNN neighbors: `k=3`
-- Output root: `outputs/`
-
-Outputs are written under:
-
-```text
-outputs/<experiment>/<dataset>/<canonical_model>/<estimator>/
-```
-
-For example, `cnn5_bn` and `cnn6` outputs are stored under canonical model name `cnn5`.
-
-Each run writes:
-
-- `config.json`: resolved experiment configuration
-- `results.csv`: row-level MI/SMI estimates, model metrics, layers, seeds, and conditions
-- Optional checkpoints when `--save-checkpoints` is enabled
+- MI: `ksg_cd`, `ksg_cc`, `neural`
+- SMI: `smi_ksg_cd`, `smi_ksg_cc`, `smi_neural`
 
 ## Reproducibility Notes
 
@@ -288,27 +231,17 @@ Each run writes:
 | `notebooks/SMI_Layers_Training.ipynb` | Interactive layer-wise SMI workflow. |
 | `notebooks/SMI_Label_Noise.ipynb` | Interactive clean vs noisy-label workflow. |
 
-## References
-
-This repository builds on standard mutual-information estimators and neural MI objectives, including:
-
-- Kraskov, Stoegbauer, and Grassberger, "Estimating mutual information", 2004.
-- Belghazi et al., "Mutual Information Neural Estimation", 2018.
-- van den Oord, Li, and Vinyals, "Representation Learning with Contrastive Predictive Coding", 2018.
-- Poole et al., "On Variational Bounds of Mutual Information", 2019.
-- Song and Ermon, "Understanding the Limitations of Variational Mutual Information Estimators", 2020.
 
 ## Citation
 
 If this repository supports your work, please cite the paper:
 
 ```bibtex
-@article{smi_dnn_memorization_generalization,
+@inproceedings{wongso2023smi,
   title = {Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks},
-  author = {TODO},
-  journal = {TODO},
-  year = {TODO}
+  author = {Wongso, Shelvia and Ghosh, Rohan and Motani, Mehul},
+  booktitle = {AISTATS},
+  year = {2023},
+  url = {https://proceedings.mlr.press/v206/wongso23a.html}
 }
 ```
-
-Please also cite any estimator papers relevant to the parts you use.
