@@ -1,0 +1,12 @@
+# Core numerical stack
+numpy
+scipy
+scikit-learn
+pandas
+
+# Deep learning
+tensorflow
+
+# Analysis and notebooks
+matplotlib
+jupyter

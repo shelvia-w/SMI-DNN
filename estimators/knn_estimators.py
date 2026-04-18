@@ -6,8 +6,37 @@
 
 import numpy as np
 import numpy.linalg as la
+import warnings
 from scipy.special import digamma
 from sklearn.neighbors import BallTree, KDTree
+
+
+def _as_2d_array(values, name, dtype=None):
+    values = np.asarray(values, dtype=dtype)
+    if values.ndim == 1:
+        values = values.reshape(-1, 1)
+    if values.ndim != 2:
+        raise ValueError(f"{name} must be a 1D or 2D array")
+    if len(values) == 0:
+        raise ValueError(f"{name} must contain at least one sample")
+    return values
+
+
+def _validate_pair(x, y, k=None, continuous_x=True, continuous_y=True):
+    x = _as_2d_array(x, "x", dtype=float if continuous_x else None)
+    y = _as_2d_array(y, "y", dtype=float if continuous_y else None)
+    if len(x) != len(y):
+        raise ValueError("x and y must have the same number of samples")
+    if k is not None:
+        if not isinstance(k, int) or k < 1:
+            raise ValueError("k must be a positive integer")
+        if k > len(x) - 1:
+            raise ValueError("k must be smaller than the number of samples")
+    if continuous_x and not np.all(np.isfinite(x)):
+        raise ValueError("x must contain only finite values")
+    if continuous_y and not np.all(np.isfinite(y)):
+        raise ValueError("y must contain only finite values")
+    return x, y
 
 # ------------------------------------------------------------------------
 # Mutual Information Estimators
@@ -31,12 +60,12 @@ def calc_mi_dd(x, y):
         
     """
     
-    assert len(x) == len(y), "Arrays should have same length"
+    x, y = _validate_pair(x, y, continuous_x=False, continuous_y=False)
     
     mi = entropy_d(x) - centropy_d(x, y)
     return mi
 
-def calc_ksg_mi_cc(x, y, k=3, alpha=0):
+def calc_ksg_mi_cc(x, y, k=3, alpha=0, noise=1e-10, random_state=None):
     """
     Estimates the mutual information between continuous x and continuous y using KSG.
     
@@ -58,11 +87,11 @@ def calc_ksg_mi_cc(x, y, k=3, alpha=0):
     
     """
     
-    assert len(x) == len(y), "Arrays should have same length"
-    assert k <= len(x) - 1, "Set k smaller than num. samples - 1"
+    x, y = _validate_pair(x, y, k=k)
+    rng = np.random.default_rng(random_state)
     
-    x = add_noise(x)
-    y = add_noise(y)
+    x = add_noise(x, intens=noise, rng=rng)
+    y = add_noise(y, intens=noise, rng=rng)
     
     points = [x, y]
     points = np.hstack(points)
@@ -80,9 +109,21 @@ def calc_ksg_mi_cc(x, y, k=3, alpha=0):
     mi = -a - b + c + d
     return mi
 
-def calc_ksg_mi_cd(x, y, k=3):
+def calc_ksg_mi_cd(
+    x,
+    y,
+    k=3,
+    warn_on_small_class=True,
+    small_class_action="raise",
+    clip_negative=False,
+    noise=1e-10,
+    random_state=None,
+    return_details=False,
+    warning=None,
+):
     """
-    Estimates the mutual information between continuous x and discrete y using KSG.
+    Estimates mutual information between continuous x and discrete y by entropy
+    decomposition, I(X;Y) = H(X) - H(X|Y).
     
     Parameters
     ----------
@@ -92,6 +133,22 @@ def calc_ksg_mi_cd(x, y, k=3):
         Array of shape (n_samples, dy_features).
     k : int, optional
         The number of nearest neighbors.
+    warn_on_small_class : bool, optional
+        Whether to warn when a label class has too few samples for the chosen k.
+    small_class_action : {'raise', 'global', 'skip'}, optional
+        How to handle classes with count <= k. 'raise' is statistically safest.
+        'global' uses H(X) for that class for backward compatibility. 'skip'
+        excludes the class from H(X|Y), which changes the target distribution.
+    clip_negative : bool, optional
+        If True, clip negative finite-sample estimates to zero. The default keeps
+        negative estimates visible as diagnostics.
+    noise : float, optional
+        Standard deviation of centered jitter added before continuous entropy
+        estimation. Set to 0 to disable jitter.
+    random_state : int or np.random.Generator, optional
+        Seed or generator for jitter reproducibility.
+    return_details : bool, optional
+        If True, return a dictionary with estimate diagnostics.
         
     Returns
     -------
@@ -100,25 +157,60 @@ def calc_ksg_mi_cd(x, y, k=3):
     
     """
     
-    entropy_x = entropy_c(x, k)
+    if warning is not None:
+        warn_on_small_class = warning
+
+    if small_class_action not in {"raise", "global", "skip"}:
+        raise ValueError("small_class_action must be one of {'raise', 'global', 'skip'}")
+
+    x, y = _validate_pair(x, y, k=k, continuous_x=True, continuous_y=False)
+    rng = np.random.default_rng(random_state)
+
+    entropy_x = entropy_c(x, k, noise=noise, rng=rng)
 
     y_unique, y_count = np.unique(y, return_counts=True, axis=0)
     y_proba = y_count / len(y)
 
     entropy_x_given_y = 0.0
+    skipped_mass = 0.0
+    small_classes = []
     for yval, p_y in zip(y_unique, y_proba):
         x_given_y = x[(y == yval).all(axis=1)]
         if k <= len(x_given_y) - 1:
-            entropy_x_given_y += p_y * entropy_c(x_given_y, k)
+            entropy_x_given_y += p_y * entropy_c(x_given_y, k, noise=noise, rng=rng)
         else:
-            if warning:
+            small_classes.append((yval.copy(), len(x_given_y), float(p_y)))
+            if warn_on_small_class:
                 warnings.warn(
-                    "Warning, after conditioning, on y={yval} insufficient data. "
-                    "Assuming maximal entropy in this case.".format(yval=yval)
+                    "After conditioning on y={yval}, only {n} samples remain; "
+                    "k={k} requires at least k+1 samples.".format(
+                        yval=yval, n=len(x_given_y), k=k
+                    ),
+                    RuntimeWarning,
                 )
-            entropy_x_given_y += p_y * entropy_x
+            if small_class_action == "raise":
+                raise ValueError(
+                    "At least one discrete class has <= k samples. Lower k, merge "
+                    "rare classes, or set small_class_action explicitly."
+                )
+            if small_class_action == "global":
+                entropy_x_given_y += p_y * entropy_x
+            elif small_class_action == "skip":
+                skipped_mass += p_y
             
-    mi = abs(entropy_x - entropy_x_given_y)
+    mi = entropy_x - entropy_x_given_y
+    if clip_negative:
+        mi = max(0.0, mi)
+
+    if return_details:
+        return {
+            "mi": float(mi),
+            "entropy_x": float(entropy_x),
+            "entropy_x_given_y": float(entropy_x_given_y),
+            "small_classes": small_classes,
+            "skipped_probability_mass": float(skipped_mass),
+            "k": k,
+        }
     return mi
 
 # ------------------------------------------------------------------------
@@ -171,7 +263,7 @@ def centropy_d(x, y):
     entropy = entropy_d(xy) - entropy_d(y)
     return entropy
 
-def entropy_c(x, k=3):
+def entropy_c(x, k=3, noise=1e-10, rng=None):
     """
     Estimates the entropy of continuous x using KSG.
     
@@ -189,10 +281,16 @@ def entropy_c(x, k=3):
     
     """
     
-    assert k <= len(x) - 1, "Set k smaller than num. samples - 1"
+    x = _as_2d_array(x, "x", dtype=float)
+    if not isinstance(k, int) or k < 1:
+        raise ValueError("k must be a positive integer")
+    if k > len(x) - 1:
+        raise ValueError("k must be smaller than the number of samples")
+    if not np.all(np.isfinite(x)):
+        raise ValueError("x must contain only finite values")
     
     n_samples, d_features = x.shape
-    x = add_noise(x)
+    x = add_noise(x, intens=noise, rng=rng)
     
     tree = build_tree(x)
     nn = query_neighbors(tree, x, k)
@@ -205,7 +303,7 @@ def entropy_c(x, k=3):
 # Utility Functions
 # ------------------------------------------------------------------------
 
-def add_noise(points, intens=1e-10):
+def add_noise(points, intens=1e-10, rng=None):
     """
     Adds random noise to all the points.
 
@@ -222,7 +320,13 @@ def add_noise(points, intens=1e-10):
         Array of shape (n_samples, d_features) with added random noise.
     
     """
-    return points + intens * np.random.random_sample(points.shape)
+    points = np.asarray(points, dtype=float)
+    if intens is None or intens == 0:
+        return points
+    if intens < 0:
+        raise ValueError("intens must be non-negative")
+    rng = np.random.default_rng(rng)
+    return points + intens * rng.normal(size=points.shape)
 
 def build_tree(points, metric='chebyshev'):
     """

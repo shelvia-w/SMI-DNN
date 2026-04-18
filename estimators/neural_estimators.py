@@ -10,7 +10,18 @@ from tensorflow.keras.layers import InputLayer, Dense
 # Evaluate MI Estimator
 # ------------------------------------------------------------------------
 
-def calc_neural_mi(dataset, n_epochs, critic='separable', train_obj='js_fgan', eval_type='smile', print_mi=True, alpha=1.0, clip=None):
+def calc_neural_mi(
+    dataset,
+    n_epochs,
+    critic='separable',
+    train_obj='js_fgan',
+    eval_type='smile',
+    print_mi=True,
+    alpha=1.0,
+    clip=None,
+    eval_dataset=None,
+    return_details=False,
+):
     """
     Estimates the mutual information between x and y using variational neural estimator.
     
@@ -32,6 +43,10 @@ def calc_neural_mi(dataset, n_epochs, critic='separable', train_obj='js_fgan', e
         A parameter for the 'smile' estimator to control clipping [Default is 1.0].
     clip : float, optional
         A parameter for the 'smile' estimator to set the clipping threshold [Default is None].
+    eval_dataset : tf.data.Dataset, optional
+        Dataset used for the final MI estimate. If None, the training dataset is reused.
+    return_details : bool, optional
+        If True, return the final estimate together with the trained model and training history.
     
     Returns
     -------
@@ -39,10 +54,20 @@ def calc_neural_mi(dataset, n_epochs, critic='separable', train_obj='js_fgan', e
         Mutual information between x and y [in nats].
     """
     
-    model = train_critic_model(dataset, n_epochs, critic='separable', train_obj='js_fgan', eval_type='direct', print_mi=True)
-    
+    model, history = train_critic_model(
+        dataset,
+        n_epochs,
+        critic=critic,
+        train_obj=train_obj,
+        eval_type=eval_type,
+        print_mi=print_mi,
+        return_history=True,
+    )
+
+    eval_dataset = dataset if eval_dataset is None else eval_dataset
     mi_batch = 0.
-    for step, (x_batch, y_batch) in enumerate(dataset):    
+    n_batches = 0
+    for step, (x_batch, y_batch) in enumerate(eval_dataset):
         score = model(x_batch, y_batch)
         if eval_type == 'nwj':
             mi_batch += nwj_lower_bound(score)
@@ -55,15 +80,29 @@ def calc_neural_mi(dataset, n_epochs, critic='separable', train_obj='js_fgan', e
         elif eval_type == 'direct':
             mi_batch += direct_log_density_ratio(score)
         else:
-            raise NotImplementedError(f"Estimator ({estimator}) not supported.")
-    mi = mi_batch/len(dataset)
-    return mi.numpy()
+            raise NotImplementedError(f"Estimator ({eval_type}) not supported.")
+        n_batches += 1
+    if n_batches == 0:
+        raise ValueError("eval_dataset must contain at least one batch")
+    mi = mi_batch / n_batches
+    mi = float(mi.numpy())
+    if return_details:
+        return {"mi": mi, "model": model, "history": history}
+    return mi
 
 # ------------------------------------------------------------------------
 # Train MI Estimator
 # ------------------------------------------------------------------------
 
-def train_critic_model(dataset, n_epochs, critic='separable', train_obj='js_fgan', eval_type='direct', print_mi=True):
+def train_critic_model(
+    dataset,
+    n_epochs,
+    critic='separable',
+    train_obj='js_fgan',
+    eval_type='direct',
+    print_mi=True,
+    return_history=False,
+):
     """
     Trains a critic model to estimate mutual information.
     
@@ -81,17 +120,18 @@ def train_critic_model(dataset, n_epochs, critic='separable', train_obj='js_fgan
         The evaluation method to use for estimating MI. Available options are 'nwj', 'dv', 'cpc', 'smile', 'direct' [Default is 'direct'].
     print_mi : bool, optional
         Whether to print the MI values during training [Default is True].
+    return_history : bool, optional
+        If True, return (model, history). Otherwise return only model.
 
     
     Returns
     -------
     model : tf.keras.Model
-        The trained critic model.
-    all_mi_train : np.ndarray
-        Array of shape (n_epochs,) containing MI values estimated using the train_obj.
-    all_mi_eval : np.ndarray
-        Array of shape (n_epochs,) containing MI values estimated using the eval_type.
+        The trained critic model. If return_history=True, a history dictionary is
+        returned alongside the model.
     """
+    if not isinstance(n_epochs, int) or n_epochs < 1:
+        raise ValueError("n_epochs must be a positive integer")
     
     if critic == 'concat':
         model = ConcatCritic(dataset)
@@ -146,16 +186,24 @@ def train_critic_model(dataset, n_epochs, critic='separable', train_obj='js_fgan
     for epoch in range(n_epochs):
         mi_train = 0.
         mi_eval = 0.
+        n_batches = 0
         for step, (x_batch, y_batch) in enumerate(dataset):
             mi_train += train_step(x_batch, y_batch, model, optimizer, loss_fn)
             mi_eval += eval_step(x_batch, y_batch, model, estimator)
-        all_mi_train.append(mi_train/len(dataset))
-        all_mi_eval.append(mi_eval/len(dataset))
+            n_batches += 1
+        if n_batches == 0:
+            raise ValueError("dataset must contain at least one batch")
+        mi_train_epoch = mi_train / n_batches
+        mi_eval_epoch = mi_eval / n_batches
+        all_mi_train.append(float(mi_train_epoch.numpy()))
+        all_mi_eval.append(float(mi_eval_epoch.numpy()))
         if print_mi:
-            print(f'Epoch f"{epoch+1:03}/{n_epochs}: MI (train)={all_mi_train[-1]:.3f}, MI (eval)={all_mi_eval[-1]:.3f}')
+            print(f"Epoch {epoch+1:03}/{n_epochs}: MI (train)={all_mi_train[-1]:.3f}, MI (eval)={all_mi_eval[-1]:.3f}")
     
     all_mi_train = np.array(all_mi_train)
     all_mi_eval = np.array(all_mi_eval)
+    if return_history:
+        return model, {"mi_train": all_mi_train, "mi_eval": all_mi_eval}
     return model
 
 # ------------------------------------------------------------------------
@@ -179,8 +227,6 @@ def nwj_lower_bound(score):
         The estimated mutual information.
     
     """
-    
-    batch_size = tf.shape(score)[0]
     
     joint_term = tf.reduce_mean(tf.linalg.diag_part(score))
     marg_term = tf.exp(logmeanexp_nodiag(score))
@@ -228,10 +274,10 @@ def cpc_lower_bound(score):
     
     """
     
-    diag_mean = tf.reduce_mean(tf.linalg.diag_part(score))
+    score_diag = tf.linalg.diag_part(score)
     logsumexp = tf.reduce_logsumexp(score, axis=1)
-    nll = diag_mean - logsumexp
-    batch_size = tf.cast(tf.shape(score)[0], tf.float32)
+    nll = score_diag - logsumexp
+    batch_size = tf.cast(tf.shape(score)[0], score.dtype)
 
     return tf.reduce_mean(tf.math.log(batch_size) + nll)
 
@@ -255,8 +301,10 @@ def js_fgan_lower_bound(score):
     
     score_diag = tf.linalg.diag_part(score)
     first_term = -tf.reduce_mean(tf.nn.softplus(-score_diag))
-    batch_size = score.shape[0]
-    second_term = (tf.reduce_sum(tf.nn.softplus(score)) - tf.reduce_sum(tf.nn.softplus(score_diag))) / (batch_size * (batch_size - 1.))
+    batch_size = tf.cast(tf.shape(score)[0], score.dtype)
+    second_term = (
+        tf.reduce_sum(tf.nn.softplus(score)) - tf.reduce_sum(tf.nn.softplus(score_diag))
+    ) / (batch_size * (batch_size - 1.))
     
     return first_term - second_term
 
@@ -284,8 +332,9 @@ def smile_lower_bound(score, alpha=1.0, clip=None):
     
     if clip is not None:
         score = tf.clip_by_value(score * alpha, -clip, clip)
+        alpha = 1.0
     z = logmeanexp_nodiag(score * alpha)
-    dv_clip = tf.reduce_mean(tf.linalg.diag_part(score)) - z
+    dv_clip = tf.reduce_mean(tf.linalg.diag_part(score * alpha)) - z
 
     return dv_clip
 
@@ -449,7 +498,7 @@ def logmeanexp_nodiag(x, axis=None):
         axis = (0, 1)
 
     # Create a mask to set diagonal elements to -inf
-    inf_mask = tf.linalg.diag(tf.fill([batch_size], np.inf))
+    inf_mask = tf.linalg.diag(tf.fill([batch_size], tf.cast(np.inf, x.dtype)))
     x_no_diag = x - inf_mask
 
     # Compute logsumexp excluding diagonal
@@ -457,8 +506,8 @@ def logmeanexp_nodiag(x, axis=None):
 
     # Compute the number of elements excluding the diagonal
     if isinstance(axis, (tuple, list)) and len(axis) == 1:
-        num_elem = tf.cast(batch_size - 1, tf.float32)
+        num_elem = tf.cast(batch_size - 1, x.dtype)
     else:
-        num_elem = tf.cast(batch_size * (batch_size - 1), tf.float32)
+        num_elem = tf.cast(batch_size * (batch_size - 1), x.dtype)
 
     return logsumexp - tf.math.log(num_elem)
