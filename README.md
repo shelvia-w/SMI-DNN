@@ -12,7 +12,7 @@ The current codebase focuses on reproducible Python experiments for:
 
 ## Research Questions
 
-This project is organized around three practical questions:
+This project is organized around three research questions:
 
 1. How does SMI between representations and labels evolve across depth and epochs?
 2. Is SMI informative for characterizing memorization behavior in DNNs?
