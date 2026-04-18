@@ -236,13 +236,11 @@ Estimators:
 
 ## Citation
 
-If this repository supports your work, please cite the paper:
-
 ```bibtex
 @inproceedings{wongso2023smi,
   title = {Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks},
   author = {Wongso, Shelvia and Ghosh, Rohan and Motani, Mehul},
-  booktitle = {AISTATS},
+  booktitle = {Proceedings of The 26th International Conference on Artificial Intelligence and Statistics},
   year = {2023},
   url = {https://proceedings.mlr.press/v206/wongso23a.html}
 }
