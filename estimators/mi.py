@@ -6,9 +6,9 @@ from typing import Any
 import numpy as np
 import tensorflow as tf
 
-from estimators.knn_estimators import calc_ksg_mi_cc, calc_ksg_mi_cd
-from estimators.neural_estimators import calc_neural_mi
-from estimators.smi_estimator import compute_smi
+from .knn_estimators import calc_ksg_mi_cc, calc_ksg_mi_cd
+from .neural_estimators import calc_neural_mi
+from .smi_estimator import compute_smi
 
 
 @dataclass(frozen=True)

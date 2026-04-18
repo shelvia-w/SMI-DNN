@@ -5,8 +5,8 @@ import csv
 import logging
 from dataclasses import dataclass
 
-from .checkpoints import save_checkpoint
-from .config import (
+from core.checkpoints import save_checkpoint
+from core.config import (
     LABEL_NOISE_RATIOS,
     add_common_args,
     config_from_args,
@@ -16,12 +16,11 @@ from .config import (
     parse_csv_floats,
     parse_csv_strings,
 )
-from .datasets import load_dataset
-from .estimators import estimate_mi
-from .features import extract_activations, select_feature_layers
-from .models import build_model
-from .noise import apply_symmetric_label_noise
-from .train import (
+from core.datasets import load_dataset
+from core.features import extract_activations, select_feature_layers
+from core.models import build_model
+from core.noise import apply_symmetric_label_noise
+from core.train import (
     AccuracyPlateauScheduler,
     EarlyStopState,
     compile_model,
@@ -29,7 +28,8 @@ from .train import (
     train_one_epoch,
     update_learning_rate_on_plateau,
 )
-from .utils import configure_logging, ensure_dir, sample_indices, set_global_seed, write_json
+from core.utils import configure_logging, ensure_dir, sample_indices, set_global_seed, write_json
+from estimators.mi import estimate_mi
 
 
 @dataclass(frozen=True)

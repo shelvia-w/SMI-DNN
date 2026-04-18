@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .utils import ensure_dir
+from core.utils import ensure_dir
 
 
 def parse_args():

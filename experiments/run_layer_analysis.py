@@ -4,14 +4,14 @@ import argparse
 import csv
 import logging
 
-from .checkpoints import save_checkpoint
-from .config import add_common_args, config_from_args, experiment_dir
-from .datasets import load_dataset
-from .features import extract_activations
-from .models import build_model, default_analysis_layers
-from .estimators import estimate_mi
-from .train import AccuracyPlateauScheduler, compile_model, train_one_epoch, update_learning_rate_on_plateau
-from .utils import configure_logging, ensure_dir, sample_indices, set_global_seed, write_json
+from core.checkpoints import save_checkpoint
+from core.config import add_common_args, config_from_args, experiment_dir
+from core.datasets import load_dataset
+from core.features import extract_activations
+from core.models import build_model, default_analysis_layers
+from core.train import AccuracyPlateauScheduler, compile_model, train_one_epoch, update_learning_rate_on_plateau
+from core.utils import configure_logging, ensure_dir, sample_indices, set_global_seed, write_json
+from estimators.mi import estimate_mi
 
 
 def parse_args():

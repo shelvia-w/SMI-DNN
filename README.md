@@ -22,24 +22,31 @@ This project is organized around three research questions:
 
 ```text
 SMI-DNN/
-|-- estimators/
-|   |-- smi_estimator.py        # Sliced MI over random projections
-|   |-- knn_estimators.py       # KSG continuous/discrete and continuous/continuous MI estimators
-|   `-- neural_estimators.py    # Neural variational MI estimators
 |-- experiments/
 |   |-- main.py                 # Unified CLI entry point
 |   |-- run_generalization.py   # Dropout, label-noise, batch-norm, and single-run sweeps
 |   |-- run_label_noise.py      # Clean vs noisy-label benchmark runner
 |   |-- run_layer_analysis.py   # Per-epoch layer-wise SMI analysis
 |   |-- aggregate_results.py    # Summary statistics and optional SMI/gap correlations
-|   |-- plot_results.py         # Plot generation from raw or aggregated CSV outputs
+|   `-- plot_results.py         # Plot generation from raw or aggregated CSV outputs
+|-- core/
 |   |-- config.py               # CLI defaults, choices, and validation
 |   |-- datasets.py             # TensorFlow/Keras dataset loading
 |   |-- models.py               # MLP, CNN, VGG16, and ResNet50 builders
-|   `-- train.py                # Training loop utilities
+|   |-- train.py                # Training loop utilities
+|   |-- features.py             # Activation extraction helpers
+|   |-- noise.py                # Label-noise utilities
+|   |-- checkpoints.py          # Checkpoint save/load helpers
+|   `-- utils.py                # Logging, JSON, seed, and filesystem helpers
+|-- estimators/
+|   |-- smi_estimator.py        # Sliced MI over random projections
+|   |-- knn_estimators.py       # KSG continuous/discrete and continuous/continuous MI estimators
+|   |-- neural_estimators.py    # Neural variational MI estimators
+|   `-- mi.py                   # Experiment-facing MI/SMI estimator selection
 |-- notebooks/
 |   |-- SMI_Layers_Training.ipynb
 |   `-- SMI_Label_Noise.ipynb
+|-- pyproject.toml
 |-- requirements.txt
 `-- README.md
 ```
@@ -60,7 +67,7 @@ The implementation supports:
 Basic usage:
 
 ```python
-from estimators.smi_estimator import compute_smi
+from estimators import compute_smi
 
 smi = compute_smi(
     x=representations,
@@ -90,6 +97,13 @@ print(result["smi"], result["stderr"])
 ```
 
 ## Experiments
+
+Install the dependencies and package in editable mode before running the experiment modules:
+
+```bash
+python -m pip install -r requirements.txt
+python -m pip install -e .
+```
 
 You can run each module directly:
 
