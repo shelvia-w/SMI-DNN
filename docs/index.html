@@ -8,6 +8,9 @@
     name="description"
     content="Project page for Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks."
   >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #fbfaf7;
@@ -27,7 +30,7 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: "Source Sans 3", "Aptos", "Segoe UI", sans-serif;
+      font-family: "IBM Plex Sans", "Aptos", "Segoe UI", sans-serif;
       font-size: 17px;
       line-height: 1.65;
     }
@@ -52,23 +55,14 @@
       text-align: center;
     }
 
-    .venue {
-      margin: 0 0 18px;
-      color: var(--accent);
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
     h1 {
       max-width: 820px;
       margin: 0 auto;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: clamp(2.15rem, 5.8vw, 4.1rem);
-      font-weight: 600;
-      line-height: 1.08;
-      letter-spacing: -0.035em;
+      font-family: "Source Sans 3", "Aptos", "Segoe UI", sans-serif;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 500;
+      line-height: 1.18;
+      letter-spacing: -0.018em;
     }
 
     .authors {
@@ -118,6 +112,46 @@
       color: #ffffff;
     }
 
+    .equation-block {
+      padding: 1rem 1.25rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow-x: auto;
+      font-family: "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+      font-size: 1rem;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .result-subsection {
+      margin-top: 1.75rem;
+    }
+
+    .result-subsection h3 {
+      margin-bottom: 0.6rem;
+    }
+
+    .result-figure {
+      margin: 1rem 0 2rem;
+    }
+
+    .result-figure img {
+      display: block;
+      width: 100%;
+      max-width: 920px;
+      height: auto;
+      margin: 0.9rem 0 0;
+      border-radius: 16px;
+    }
+
+    .result-figure figcaption {
+      margin-top: 0.75rem;
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
     section {
       padding: 46px 0;
       border-top: 1px solid var(--line);
@@ -125,10 +159,19 @@
 
     h2 {
       margin: 0 0 18px;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: clamp(1.45rem, 3.5vw, 2rem);
-      font-weight: 600;
-      letter-spacing: -0.02em;
+      font-family: "IBM Plex Sans", "Aptos", "Segoe UI", sans-serif;
+      font-size: clamp(1.18rem, 2.4vw, 1.45rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    h2::after {
+      content: "";
+      display: block;
+      width: 38px;
+      height: 2px;
+      margin-top: 10px;
+      background: var(--accent);
     }
 
     p {
@@ -136,7 +179,7 @@
     }
 
     .section-text {
-      max-width: 740px;
+      max-width: 900px;
       color: var(--muted);
     }
 
@@ -270,13 +313,13 @@
 <body>
   <main class="container">
     <header>
-      <p class="venue">AISTATS 2023</p>
-      <h1>Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks</h1>
+      <h1>Using Sliced Mutual Information to<br/>
+         Study Memorization and Generalization<br/>
+         in Deep Neural Networks</h1>
       <p class="authors">Shelvia Wongso, Rohan Ghosh, Mehul Motani</p>
-      <p class="affiliation">Proceedings of Machine Learning Research, Volume 206</p>
+      <p class="affiliation">AISTATS 2023 (Oral)</p>
       <p class="summary">
-        This paper uses Sliced Mutual Information to analyze what deep neural networks encode as they generalize,
-        memorize, and respond to label noise.
+        This paper uses Sliced Mutual Information (SMI) to analyze the memorization and generalization behaviors of deep neural networks (DNNs).
       </p>
       <nav class="links" aria-label="Paper links">
         <a class="button primary" href="https://proceedings.mlr.press/v206/wongso23a.html">Paper</a>
@@ -286,143 +329,90 @@
       </nav>
     </header>
 
-    <section id="teaser" aria-labelledby="teaser-title">
-      <h2 id="teaser-title">Teaser</h2>
-      <figure class="figure">
-        <svg viewBox="0 0 880 360" role="img" aria-label="Conceptual diagram of SMI analysis across neural network layers">
-          <rect width="880" height="360" fill="#ffffff"></rect>
-          <line x1="120" y1="184" x2="760" y2="184" stroke="#dedbd3" stroke-width="2"></line>
-          <g fill="#ffffff" stroke="#1f2328" stroke-width="2">
-            <rect x="92" y="132" width="96" height="104" rx="8"></rect>
-            <rect x="250" y="118" width="96" height="132" rx="8"></rect>
-            <rect x="408" y="104" width="96" height="160" rx="8"></rect>
-            <rect x="566" y="118" width="96" height="132" rx="8"></rect>
-            <rect x="724" y="132" width="96" height="104" rx="8"></rect>
-          </g>
-          <g fill="#7a4f9a">
-            <circle cx="140" cy="164" r="5"></circle>
-            <circle cx="140" cy="184" r="5"></circle>
-            <circle cx="140" cy="204" r="5"></circle>
-            <circle cx="298" cy="154" r="5"></circle>
-            <circle cx="298" cy="184" r="5"></circle>
-            <circle cx="298" cy="214" r="5"></circle>
-            <circle cx="456" cy="144" r="5"></circle>
-            <circle cx="456" cy="184" r="5"></circle>
-            <circle cx="456" cy="224" r="5"></circle>
-            <circle cx="614" cy="154" r="5"></circle>
-            <circle cx="614" cy="184" r="5"></circle>
-            <circle cx="614" cy="214" r="5"></circle>
-            <circle cx="772" cy="164" r="5"></circle>
-            <circle cx="772" cy="184" r="5"></circle>
-            <circle cx="772" cy="204" r="5"></circle>
-          </g>
-          <path d="M140 70 C250 30, 360 92, 456 64 S650 56, 772 90" fill="none" stroke="#7a4f9a" stroke-width="3"></path>
-          <text x="440" y="48" fill="#68707a" font-family="Arial, sans-serif" font-size="17" text-anchor="middle">SMI tracks label information across layers and epochs</text>
-          <text x="140" y="286" fill="#68707a" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">Input</text>
-          <text x="298" y="286" fill="#68707a" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">Layer 1</text>
-          <text x="456" y="286" fill="#68707a" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">Layer 2</text>
-          <text x="614" y="286" fill="#68707a" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">Layer 3</text>
-          <text x="772" y="286" fill="#68707a" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">Output</text>
-        </svg>
-        <figcaption class="caption">
-          SMI provides a compact way to measure how much label-related information is present in internal representations.
-        </figcaption>
-      </figure>
-    </section>
-
     <section id="overview" aria-labelledby="overview-title">
       <h2 id="overview-title">Overview</h2>
       <div class="section-text">
         <p>
-          Deep neural networks can achieve strong test accuracy while also being capable of memorizing corrupted labels.
-          This makes it difficult to understand whether a representation captures generalizable structure or training-set
-          specific noise.
+          Deep neural networks generalize remarkably well across many tasks. Yet it remains unclear what their internal representations capture and how these representations relate to memorization and generalization.
         </p>
         <p>
-          The paper studies this question using Sliced Mutual Information, a projection-based estimator that makes
-          information-theoretic analysis more practical for high-dimensional hidden representations.
+          The paper proposes to study this using Sliced Mutual Information (SMI), introduced by Goldfeld and Greenewald (2021), as an alternative to standard mutual information (MI) for analyzing high-dimensional random variables. By averaging MI estimates across many random projections, SMI provides a more scalable way to quantify dependence in high-dimensional settings.
         </p>
+      <p>
+        In this paper, we:
+        <ul class="small-list">
+          <li>analyze label information across layers and epochs,</li>
+          <li>study how SMI relates to memorization,</li>
+          <li>study how SMI correlates with the generalization gap, and</li>
+          <li>relate SMI to margin and intrinsic dimensionality.</li>
+        </ul>
+      </p>
       </div>
-      <ul class="small-list">
-        <li>Measure label information across layers and training epochs.</li>
-        <li>Compare clean-label and noisy-label training behavior.</li>
-        <li>Relate representation information to memorization and generalization gap.</li>
-      </ul>
     </section>
 
-    <section id="method" aria-labelledby="method-title">
-      <div class="two-column">
-        <div>
-          <h2 id="method-title">Method</h2>
-          <p class="section-text">
-            Instead of estimating mutual information directly in a high-dimensional representation space, SMI samples
-            random projections, estimates mutual information after projection, and averages the projected estimates.
-          </p>
-        </div>
-        <figure class="figure">
-          <svg viewBox="0 0 520 240" role="img" aria-label="SMI method diagram">
-            <rect width="520" height="240" fill="#ffffff"></rect>
-            <g fill="none" stroke="#1f2328" stroke-width="1.8">
-              <rect x="36" y="76" width="104" height="86" rx="8"></rect>
-              <rect x="208" y="76" width="104" height="86" rx="8"></rect>
-              <rect x="380" y="76" width="104" height="86" rx="8"></rect>
-            </g>
-            <g stroke="#7a4f9a" stroke-width="2.4" fill="none">
-              <path d="M150 119 H198"></path>
-              <path d="M322 119 H370"></path>
-            </g>
-            <g fill="#7a4f9a">
-              <circle cx="88" cy="104" r="5"></circle>
-              <circle cx="88" cy="121" r="5"></circle>
-              <circle cx="88" cy="138" r="5"></circle>
-              <circle cx="260" cy="121" r="5"></circle>
-              <circle cx="432" cy="121" r="5"></circle>
-            </g>
-            <text x="88" y="190" fill="#68707a" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">Representation</text>
-            <text x="260" y="190" fill="#68707a" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">Projection</text>
-            <text x="432" y="190" fill="#68707a" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">MI estimate</text>
-          </svg>
-        </figure>
+    <section id="smi" aria-labelledby="smi-title">
+      <div>
+        <h2 id="smi-title">Sliced Mutual Information</h2>
+        <p class="section-text">
+          Sliced Mutual Information (SMI) is defined as the average mutual information between one-dimensional random projections of two random variables:
+        </p>
+
+        <p>
+          $$
+          \mathrm{SI}(X;Y)
+          := I(\Theta^\top X;\Phi^\top Y \mid \Theta,\Phi)
+          = \frac{1}{S_{d_x-1}S_{d_y-1}}
+          \int_{\mathbb{S}^{d_x-1}} \int_{\mathbb{S}^{d_y-1}}
+          I(\theta^\top X;\phi^\top Y)\, d\theta\, d\phi.
+          $$
+        </p>
       </div>
+
+      <p class="section-text">
+        In the experiments, SMI is computed between the hidden representations $(X)$ and the labels $(Y)$.
+      </p>
     </section>
 
     <section id="results" aria-labelledby="results-title">
       <h2 id="results-title">Results</h2>
+
+      <h3 id="layer-wise-title">1. Layer-wise training dynamics</h3>
       <p class="section-text">
-        The main takeaway is that SMI offers a useful diagnostic for distinguishing representation behavior associated
-        with generalization from behavior associated with memorization.
+        The first result examines how SMI changes across network depth and training epochs. Across different architectures and datasets, SMI is low at initialization and increases more strongly in deeper layers as training progresses, indicating that later representations become increasingly informative about the labels.
       </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Study</th>
-            <th>Observation</th>
-            <th>Takeaway</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Layer-wise training</td>
-            <td>SMI changes across depth and epochs.</td>
-            <td>Internal representations reveal learning dynamics not captured by final accuracy alone.</td>
-          </tr>
-          <tr>
-            <td>Label noise</td>
-            <td>Noisy supervision changes the information encoded by hidden layers.</td>
-            <td>SMI helps characterize memorization behavior.</td>
-          </tr>
-          <tr>
-            <td>Generalization gap</td>
-            <td>SMI is studied alongside train-test behavior and regularization choices.</td>
-            <td>Representation information can support generalization analysis.</td>
-          </tr>
-        </tbody>
-      </table>
+      <figure class="result-figure">
+        <img src="./result_1.PNG" alt="SMI across layers for MLP on MNIST, CNN on CIFAR10, and VGG16 on CIFAR100 at different training epochs.">
+        <figcaption>
+          SMI across layers at different training epochs for different model–dataset pairs. In general, SMI increases with network depth during training.
+
+        </figcaption>
+      </figure>
+
+      <h3 id="label-noise-title">2. Behavior under label noise</h3>
+        <p class="section-text">
+          The second result studies how SMI evolves under different levels of label corruption. When there is no label noise, SMI rises and remains high, particularly in deeper layers. In the presence of label noise, all the hidden layers experience an increase in SMI first before decreasing. This may indicate that the networks learn relevant and generalizable features first before proceeding to memorize.  Furthermore, we observe that the SMI of deeper layers drop more compared to the earlier layers when the network is memorizing. 
+        </p>
+        <figure class="result-figure">
+          <img src="./result_2.PNG" alt="SMI over training epochs for different layers under label noise ratios 0, 0.2, and 0.4.">
+          <figcaption>
+            SMI across layers in a 5-layer MLP trained on MNIST for 50 epochs under different label noise ratios. As label noise increases, SMI decreases, especially in deeper layers.
+          </figcaption>
+        </figure>
+
+      <h3 id="generalization-title">3. Connection to generalization</h3>
+      <p class="section-text">
+        The third result shows a consistent relationship between SMI and generalization gap across multiple models and datasets. In all cases, larger SMI values are associated with smaller generalization gaps, supporting the theoretical connection between SMI and margin as well as intrinsic dimensionality.
+      </p>
+      <figure class="result-figure">
+        <img src="./result_3.PNG" alt="Scatter plots showing relationship between SMI and generalization gap across several models and datasets.">
+        <figcaption>
+          The generalization gap vs SMI between the penultimate layer and labels across different model–dataset pairs. In general, higher SMI values correspond to smaller generalization gaps.
+        </figcaption>
+      </figure>
     </section>
 
     <section id="citation" aria-labelledby="citation-title">
       <h2 id="citation-title">Citation</h2>
-      <p class="section-text">If this work is useful for your research, please cite the paper.</p>
       <pre><code>@inproceedings{wongso2023smi,
   title = {Using Sliced Mutual Information to Study Memorization and Generalization in Deep Neural Networks},
   author = {Wongso, Shelvia and Ghosh, Rohan and Motani, Mehul},
@@ -438,5 +428,14 @@
       Project page for SMI-DNN.
     </div>
   </footer>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
 </body>
 </html>
