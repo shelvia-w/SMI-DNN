@@ -46,7 +46,6 @@ SMI-DNN/
 |-- notebooks/
 |   |-- SMI_Layers_Training.ipynb
 |   `-- SMI_Label_Noise.ipynb
-|-- pyproject.toml
 |-- requirements.txt
 `-- README.md
 ```
